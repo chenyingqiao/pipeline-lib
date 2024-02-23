@@ -130,7 +130,7 @@ func (kss *LocalStep) exec(ctx context.Context, cmd string) error {
 				return nil
 			}
 			var err error
-			kss.log, err = kss.GetLogFronExecutorResult(result)
+			kss.log, err = kss.GetLogFromExecutorResult(result)
 			if util.IsTerminatorErr(err) {
 				return pipeline.ErrTimeoutOrCancel
 			}
