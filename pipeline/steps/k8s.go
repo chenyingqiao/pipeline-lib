@@ -190,7 +190,6 @@ func (kss *K8sStep) exec(ctx context.Context, cmd string) error {
 		}
 		kss.log += "\n✅执行成功"
 	}()
-	kss.RestorLog()
 	for {
 		select {
 		case result, ok := <-rchan:
@@ -198,8 +197,8 @@ func (kss *K8sStep) exec(ctx context.Context, cmd string) error {
 				util.SystemLog(ctx, "日志信息: %s\n", kss.log)
 				return nil
 			}
-			beforeLog, err := kss.GetLogFronExecutorResult(result)
-			kss.LogAppend(beforeLog)
+			var err error
+			kss.log, err = kss.GetLogFronExecutorResult(result)
 			if util.IsTerminatorErr(err) {
 				hasErr = err
 				return pipeline.ErrTimeoutOrCancel

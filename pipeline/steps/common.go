@@ -232,7 +232,7 @@ func ChainEach(p pipeline.PipelineOperator, stage pipeline.StageOperator, data i
 	return nil, errors.New("step not match!")
 }
 
-func (j *BaseStep) GetLogFronExecutorResult(result pipeline.ExecutorResult) (string, error) {
+func (j *BaseStep) GetLogFromExecutorResult(result pipeline.ExecutorResult) (string, error) {
 	defer j.pipeline.Notify()
 	log := result.GetLog().Success + result.GetLog().Error
 	if result.GetErr() != nil {

@@ -129,8 +129,8 @@ func (kss *LocalStep) exec(ctx context.Context, cmd string) error {
 			if !ok {
 				return nil
 			}
-			beforeLog, err := kss.GetLogFronExecutorResult(result)
-			kss.LogAppend(beforeLog)
+			var err error
+			kss.log, err = kss.GetLogFronExecutorResult(result)
 			if util.IsTerminatorErr(err) {
 				return pipeline.ErrTimeoutOrCancel
 			}
