@@ -65,7 +65,6 @@ type BaseStep struct {
 	pipelineID string
 	status     string
 	log        string
-	logInit    string
 	logID      string
 	code       string
 	timeout    time.Duration
@@ -141,14 +140,7 @@ func (b *BaseStep) GetErr() error {
 // Exec 执行
 func (b *BaseStep) Exec(ctx context.Context) error {
 	b.logID = uuid.New().String()
-	b.RestorLog()
 	return nil
-}
-
-// RestorLog 在日志生成到新的阶段时需要把之前的日志做一下保存
-func (b *BaseStep) RestorLog() {
-	//保存开始执行前的日志信息
-	b.logInit = b.log
 }
 
 func (b *BaseStep) initPublicVars() {
@@ -238,16 +230,6 @@ func ChainEach(p pipeline.PipelineOperator, stage pipeline.StageOperator, data i
 		return nil, err
 	}
 	return nil, errors.New("step not match!")
-}
-
-// 多段的log进行拼接,保持执行前节点的日志信息
-func (j *BaseStep) LogAppend(logs ...string) {
-	logC := j.logInit + strings.Join(logs, "")
-	if len(logC) < len(j.log) && util.Md5(logC) != util.Md5(j.log) {
-		//这个情况是除了初始化日志，中间还插入了其他日志的情况
-		j.RestorLog()
-	}
-	j.log = j.logInit + strings.Join(logs, "")
 }
 
 func (j *BaseStep) GetLogFronExecutorResult(result pipeline.ExecutorResult) (string, error) {
