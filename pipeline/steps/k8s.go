@@ -94,14 +94,9 @@ func (kss *K8sStep) Exec(ctx context.Context) error {
 	}
 	//解析转换参数中的模板
 	kss.config = ParseObject(ctx, kss.pipeline, kss.stage, kss, kss.config)
-	//优先执行beforeAction
-	err := kss.beforeActionExec(ctx)
-	if err != nil {
-		return err
-	}
 	//刷新环境变量并执行主容器代码
 	cmdStr := strings.Join(kss.cmds, ";\n")
-	err = kss.exec(ctx, cmdStr)
+	err := kss.exec(ctx, cmdStr)
 	if err != nil {
 		kss.err = err
 		return err
@@ -153,45 +148,6 @@ func (kss *K8sStep) Env() (interface{}, pipeline.EnvType) {
 // IsTermination 是否结束后面的流水线
 func (kss *K8sStep) IsTermination() bool {
 	return kss.isTermination(kss.config.Termination)
-}
-
-// beforeActionExec 执行前置操作
-func (kss *K8sStep) beforeActionExec(ctx context.Context) error {
-	for key, item := range kss.config.BeforeAction {
-		continerName := fmt.Sprintf("%s-before-%d", util.GetStepContainerName(kss), key)
-		runtimeInfo := executor.NewK8sRuntimeInfo(kss.pipeline, kss, []executor.K8sFiles{})
-		runtimeInfo.ContainerName = continerName
-		rchan := kss.k8sExecutor.Do(ctx, executor.ExecutorParam{
-			CMD:         item.Cmd,
-			Timeout:     kss.timeout,
-			RuntimeInfo: runtimeInfo,
-			Step:        kss,
-		})
-		callbackFunc := func() error {
-			kss.RestorLog()
-			for {
-				select {
-				case result, ok := <-rchan:
-					if !ok {
-						return nil
-					}
-					beforeLog, err := kss.GetLogFronExecutorResult(result)
-					kss.LogAppend(beforeLog)
-					if util.IsTerminatorErr(err) {
-						return pipeline.ErrTimeoutOrCancel
-					}
-					if err != nil {
-						return err
-					}
-				}
-			}
-		}
-		err := callbackFunc()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (kss *K8sStep) exec(ctx context.Context, cmd string) error {

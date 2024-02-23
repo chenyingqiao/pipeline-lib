@@ -248,7 +248,7 @@ func (kcs *Agent) metadata(ctx context.Context, p pipeline.PipelineOperator, s p
 	metadata := map[string]interface{}{}
 	resp, err := resty.NewWithClient(http.DefaultClient).
 		SetRetryCount(10).
-		SetRetryWaitTime(2*time.Second).
+		SetRetryWaitTime(2 * time.Second).
 		AddRetryCondition(func(r *resty.Response, err error) bool {
 			return !r.IsSuccess()
 		}).
